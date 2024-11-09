@@ -1,5 +1,5 @@
 package com.github.naixx.logger
 
-internal actual inline fun getMethodAndLine(): String? {
+internal actual inline fun getMethodAndLine(): Source? {
     return null
 }

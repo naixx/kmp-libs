@@ -8,32 +8,39 @@ package com.github.naixx.logger
 
 import io.github.aakira.napier.Napier
 
-internal expect fun getMethodAndLine(): String?
+data class Source(val tag: String, val line: String?)
+
+internal expect fun getMethodAndLine(): Source?
 
 object LL {
 
     fun e(a: Any?) {
-        val method = getMethodAndLine()
-        Napier.e { a?.toString() + (method?.let { "--->($method" } ?: "") }
+        val source = getMethodAndLine()
+        Napier.e(tag = source?.tag) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
     }
 
     fun e(throwable: Throwable?, a: Any?) {
-        val method = getMethodAndLine()
-        Napier.e(throwable) { a?.toString() + (method?.let { "--->($method" } ?: "") }
+        val source = getMethodAndLine()
+        Napier.e(tag = source?.tag, throwable = throwable) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
     }
 
     fun d(a: Any?) {
-        val method = getMethodAndLine()
-        Napier.d { a?.toString() + (method?.let { "--->($method" } ?: "") }
+        val source = getMethodAndLine()
+        Napier.d(tag = source?.tag) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
     }
 
     fun w(a: Any?) {
-        val method = getMethodAndLine()
-        Napier.w { a?.toString() + (method?.let { "--->($method" } ?: "") }
+        val source = getMethodAndLine()
+        Napier.w(tag = source?.tag) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
+    }
+
+    fun w(throwable: Throwable?, a: Any?) {
+        val source = getMethodAndLine()
+        Napier.w(tag = source?.tag, throwable = throwable) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
     }
 
     fun i(a: Any?) {
-        val method = getMethodAndLine()
-        Napier.i { a?.toString() + (method?.let { "--->($method" } ?: "") }
+        val source = getMethodAndLine()
+        Napier.i(tag = source?.tag) { a?.toString() + (source?.let { "--->(${source.line}" } ?: "") }
     }
 }

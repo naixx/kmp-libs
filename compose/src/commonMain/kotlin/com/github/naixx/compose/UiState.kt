@@ -33,7 +33,6 @@ data class RetryButtonTheme(
     val rowSpace: Dp = 8.dp,
     val rowPadding: Dp = 16.dp,
     val timesSpace: Dp = 8.dp,
-
 )
 
 @Composable
@@ -150,7 +149,6 @@ fun <T> produce(key1: Any?, retry: () -> Unit = {}, block: suspend () -> T): UiS
     }
     return state
 }
-
 
 @Composable
 fun <T> produce(retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {

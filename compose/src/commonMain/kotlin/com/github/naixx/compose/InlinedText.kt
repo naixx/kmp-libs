@@ -44,7 +44,10 @@ fun InlinedText(
         ClickableText2(text, modifier = modifier, color = color, style = style, inlineContent = inlinedContent) { offset ->
             text.getStringAnnotations("URL", offset, offset)
                 .firstOrNull()?.let { annotation ->
-                    uriHandler.openUri(annotation.item)
+                    try {
+                        uriHandler.openUri(annotation.item)
+                    } catch (e: Exception) {
+                    }
                 }
         }
     else

@@ -1,0 +1,8 @@
+# Configuration file for jitpack.io
+
+# Specify JDK version
+# https://jitpack.io/docs/BUILDING/#java-version
+jdk:
+  - openjdk21
+before_install:
+  - ./scripts/prepareJitpackEnvironment.sh

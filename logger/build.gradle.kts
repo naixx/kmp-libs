@@ -47,7 +47,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.napier)
+                api(libs.napier)
             }
         }
         commonTest.dependencies {

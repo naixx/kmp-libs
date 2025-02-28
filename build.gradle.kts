@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.com.intellij.icons.AllIcons.General.Add
-
 plugins {
     id("maven-publish")
     //trick: for the same plugin versions in all sub-modules

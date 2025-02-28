@@ -18,3 +18,4 @@ rootProject.name = "kmp-libs"
 include(":core")
 include(":compose")
 include(":logger")
+include(":prefs")

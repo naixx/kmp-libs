@@ -13,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -45,12 +46,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.multiplatform.settings)
-            implementation(libs.multiplatform.settings.no.arg)
-            implementation(libs.multiplatform.settings.coroutines)
-            implementation(libs.multiplatform.settings.serialization)
-            implementation(libs.multiplatform.settings.observable)
+            api(libs.multiplatform.settings)
+            api(libs.multiplatform.settings.no.arg)
+            api(libs.multiplatform.settings.coroutines)
+            api(libs.multiplatform.settings.serialization)
+            api(libs.multiplatform.settings.observable)
             implementation(libs.kotlinx.coroutines.core)
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0") // Use latest version
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

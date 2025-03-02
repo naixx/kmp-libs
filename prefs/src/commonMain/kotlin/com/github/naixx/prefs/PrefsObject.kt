@@ -10,5 +10,5 @@ import com.russhwolf.settings.ObservableSettings
 
 interface PrefsObject {
 
-    var settings: ObservableSettings
+    val settings: ObservableSettings
 }

@@ -23,11 +23,22 @@ class SerializedExtensionsTest {
         val nested: TestData? = null
     )
 
-    private class TestSerializedPrefs(override val settings: ObservableSettings): PrefsObject {
+    @Serializable
+    data class DataWithNullableFields(
+        val id: Int,
+        val name: String?,
+        val tags: List<String>?
+    )
+
+    private class TestSerializedPrefs(override val settings: ObservableSettings) : PrefsObject {
 
         var simpleData by serialized(TestData("default", 0, false))
         var complexData by serialized(ComplexData("default", emptyList()))
-        var nullableData by serializedNullable<TestData>()
+        var nullableData by serialized<TestData>()
+        var set by serialized(setOf("a"))
+        var dataWithNullableFields by serialized(DataWithNullableFields(0, null, null))
+        var nullableComplexData by serialized<ComplexData>()
+        var nullableList by serialized<List<String>>()
     }
 
     private lateinit var settings: ObservableSettings
@@ -89,6 +100,75 @@ class SerializedExtensionsTest {
     }
 
     @Test
+    fun testNullableFieldsInData() {
+        // Test default state
+        assertEquals(0, prefs.dataWithNullableFields.id)
+        assertNull(prefs.dataWithNullableFields.name)
+        assertNull(prefs.dataWithNullableFields.tags)
+
+        // Update with non-null values
+        val updatedData = DataWithNullableFields(1, "Test Name", listOf("tag1", "tag2"))
+        prefs.dataWithNullableFields = updatedData
+        assertEquals(updatedData, prefs.dataWithNullableFields)
+        assertEquals("Test Name", prefs.dataWithNullableFields.name)
+        assertEquals(listOf("tag1", "tag2"), prefs.dataWithNullableFields.tags)
+
+        // Check persistence
+        val newPrefs = TestSerializedPrefs(settings)
+        assertEquals(updatedData, newPrefs.dataWithNullableFields)
+
+        // Set back to partial null values
+        val partialNullData = DataWithNullableFields(2, null, listOf("tag3"))
+        prefs.dataWithNullableFields = partialNullData
+        assertEquals(partialNullData, prefs.dataWithNullableFields)
+        assertNull(prefs.dataWithNullableFields.name)
+        assertNotNull(prefs.dataWithNullableFields.tags)
+    }
+
+    @Test
+    fun testNullableComplexDataSerialization() {
+        // Initially null
+        assertNull(prefs.nullableComplexData)
+
+        // Set with null nested field
+        val complexWithNullNested = ComplexData("complex-null-nested", listOf(5, 6, 7))
+        prefs.nullableComplexData = complexWithNullNested
+        assertEquals(complexWithNullNested, prefs.nullableComplexData)
+        assertNull(prefs.nullableComplexData?.nested)
+
+        // Set with non-null nested field
+        val nestedData = TestData("inner-data", 42, true)
+        val complexWithNested = ComplexData("complex-with-nested", listOf(1, 2, 3), nestedData)
+        prefs.nullableComplexData = complexWithNested
+        assertEquals(complexWithNested, prefs.nullableComplexData)
+        assertEquals(nestedData, prefs.nullableComplexData?.nested)
+
+        // Set back to null
+        prefs.nullableComplexData = null
+        assertNull(prefs.nullableComplexData)
+    }
+
+    @Test
+    fun testNullableCollectionSerialization() {
+        // Initially null
+        assertNull(prefs.nullableList)
+
+        // Set empty list
+        prefs.nullableList = emptyList()
+        assertNotNull(prefs.nullableList)
+        assertTrue(prefs.nullableList?.isEmpty() == true)
+
+        // Set populated list
+        prefs.nullableList = listOf("one", "two", "three")
+        assertEquals(3, prefs.nullableList?.size)
+        assertEquals("two", prefs.nullableList?.get(1))
+
+        // Set back to null
+        prefs.nullableList = null
+        assertNull(prefs.nullableList)
+    }
+
+    @Test
     fun testExceptionHandling() {
         // Create a new settings instance to reset state
         // This simulates what happens when data is missing or corrupted
@@ -96,5 +176,18 @@ class SerializedExtensionsTest {
         prefs = TestSerializedPrefs(settings)
         // Reading should return the default value when no data exists
         assertEquals(TestData("default", 0, false), prefs.simpleData)
+    }
+
+    @Test
+    fun testCollectionSerialization() {
+        assertTrue(prefs.set.all { it == "a" })
+        prefs.set += "b"
+        assertEquals(setOf("a", "b"), prefs.set)
+        prefs.set -= "a"
+        assertEquals(setOf("b"), prefs.set)
+        prefs.set += "c"
+        assertEquals(setOf("b", "c"), prefs.set)
+        prefs.set = setOf()
+        assertTrue(prefs.set.isEmpty())
     }
 }

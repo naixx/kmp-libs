@@ -151,6 +151,26 @@ fun <T> produce(key1: Any?, retry: () -> Unit = {}, block: suspend () -> T): UiS
 }
 
 @Composable
+fun <T> produce(key1: Any?, key2: Any?, retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+    var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
+    LaunchedEffect(key1 = key1, key2 = key2) {
+        state = UiState.Loading
+        state = catching(retry) { block() }
+    }
+    return state
+}
+
+@Composable
+fun <T> produce(key1: Any?, key2: Any?, key3: Any?,retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+    var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
+    LaunchedEffect(key1 = key1, key2 = key2, key3 = key3) {
+        state = UiState.Loading
+        state = catching(retry) { block() }
+    }
+    return state
+}
+
+@Composable
 fun <T> produce(retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
     var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
     LaunchedEffect(Unit) {

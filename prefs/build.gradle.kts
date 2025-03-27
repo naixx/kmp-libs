@@ -49,7 +49,7 @@ kotlin {
             api(libs.multiplatform.settings)
             api(libs.multiplatform.settings.no.arg)
             api(libs.multiplatform.settings.coroutines)
-            api(libs.multiplatform.settings.serialization)
+            implementation(libs.multiplatform.settings.serialization)
             api(libs.multiplatform.settings.observable)
             implementation(libs.kotlinx.coroutines.core)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0") // Use latest version

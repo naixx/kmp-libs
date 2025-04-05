@@ -11,7 +11,13 @@ val Instant.relative
     get() = HumanReadable.timeAgo(this)
 
 val Number.abbreviation
-    get() = HumanReadable.abbreviation(this)
+    get() = HumanReadable.abbreviation(this, digits)
 
 val Duration.duration
     get() = HumanReadable.duration(this)
+
+private var digits = 0
+
+fun setMinAbbreviationDecimals(minDecimals: Int) {
+    digits = minDecimals
+}

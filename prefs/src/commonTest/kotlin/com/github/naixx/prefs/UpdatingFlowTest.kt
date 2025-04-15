@@ -4,10 +4,22 @@ import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.observable.makeObservable
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+@Serializable
+private enum class TestEnum {
+
+    FIRST, SECOND, THIRD
+}
+
+@Serializable
+private data class TestData(val x: Int, val y: String)
 
 /**
  * Tests for UpdatingFlow focusing on property delegates
@@ -30,6 +42,12 @@ class UpdatingFlowTest {
         val customFloatPref by floatFlow(3.14f)
         val customDoublePref by doubleFlow(2.7182818284)
         val customStringPref by stringFlow("Initial Value")
+
+        // Enum/dataClass serializedFlow
+        val enumPref by serializedFlow(TestEnum.FIRST)
+        val customEnumPref by serializedFlow(TestEnum.SECOND)
+        val dataPref by serializedFlow(TestData(0, ""))
+        val customDataPref by serializedFlow(TestData(42, "KMP"))
     }
 
     // Shared test objects
@@ -208,5 +226,51 @@ class UpdatingFlowTest {
         testPrefs.stringPref += "Kotlin Multiplatform"
         assertEquals("Kotlin Multiplatform", testPrefs.stringPref.value)
         assertEquals("Kotlin Multiplatform", settings.getString("stringPref", ""))
+    }
+
+    @Test
+    fun testSerializedEnumDefaultAndCustom() {
+        // Default value
+        assertEquals(TestEnum.FIRST, testPrefs.enumPref.value)
+        // Custom non-default
+        assertEquals(TestEnum.SECOND, testPrefs.customEnumPref.value)
+    }
+
+    @Test
+    fun testSerializedEnumUpdateAndAssign() {
+        testPrefs.enumPref.update(TestEnum.SECOND)
+        assertEquals(TestEnum.SECOND, testPrefs.enumPref.value)
+        testPrefs.enumPref += TestEnum.THIRD
+        assertEquals(TestEnum.THIRD, testPrefs.enumPref.value)
+        val newPrefs = TestPrefs(settings)
+        assertEquals(TestEnum.THIRD, newPrefs.enumPref.value)
+    }
+
+    @Test
+    fun testSerializedDataDefaultAndCustom() {
+        // Default value
+        assertEquals(TestData(0, ""), testPrefs.dataPref.value)
+        // Custom non-default
+        assertEquals(TestData(42, "KMP"), testPrefs.customDataPref.value)
+    }
+
+    @Test
+    fun testSerializedDataUpdateAndAssign() {
+        testPrefs.dataPref.update(TestData(7, "abc"))
+        assertEquals(TestData(7, "abc"), testPrefs.dataPref.value)
+        testPrefs.dataPref += TestData(123, "xyz")
+        assertEquals(TestData(123, "xyz"), testPrefs.dataPref.value)
+        val newPrefs = TestPrefs(settings)
+        assertEquals(TestData(123, "xyz"), newPrefs.dataPref.value)
+    }
+
+    @Test
+    fun testSerializedPredefinedSettingsValues() {
+        // Write, then re-read with new TestPrefs instance
+        testPrefs.enumPref.update(TestEnum.SECOND)
+        testPrefs.dataPref.update(TestData(100, "Hello"))
+        val newPrefs = TestPrefs(settings)
+        assertEquals(TestEnum.SECOND, newPrefs.enumPref.value)
+        assertEquals(TestData(100, "Hello"), newPrefs.dataPref.value)
     }
 }

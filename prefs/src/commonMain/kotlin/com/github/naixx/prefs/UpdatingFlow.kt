@@ -1,7 +1,12 @@
 package com.github.naixx.prefs
 
+import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
+import com.russhwolf.settings.serialization.decodeValue
+import com.russhwolf.settings.serialization.encodeValue
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.serializer
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -114,6 +119,27 @@ fun PrefsObject.stringFlow(defaultValue: String): ReadOnlyProperty<Any?, Updatin
                     property.name,
                     Settings::putString,
                     this@stringFlow.settings.getStringOrNull(property.name) ?: defaultValue
+                )
+            }
+            return cachedFlow!!
+        }
+    }
+
+
+@OptIn(ExperimentalSettingsApi::class, ExperimentalSerializationApi::class)
+inline fun <reified T> PrefsObject.serializedFlow(defaultValue: T): ReadOnlyProperty<Any?, UpdatingFlow<T>> =
+    object : ReadOnlyProperty<Any?, UpdatingFlow<T>> {
+        private var cachedFlow: UpdatingFlow<T>? = null
+        override fun getValue(thisRef: Any?, property: KProperty<*>): UpdatingFlow<T> {
+            if (cachedFlow == null) {
+                val serializer = serializer<T>()
+                cachedFlow = UpdatingFlow(
+                    this@serializedFlow.settings,
+                    property.name,
+                    { key, value ->
+                        settings.encodeValue(serializer, key, value)
+                    },
+                    settings.decodeValue(serializer, property.name, defaultValue)
                 )
             }
             return cachedFlow!!

@@ -49,6 +49,10 @@ kotlin {
             compileOnly(libs.kotlinx.datetime)
         }
     }
+    sourceSets.commonTest.dependencies {
+        implementation(kotlin("test"))
+        implementation(libs.human.readable)
+    }
 }
 
 android {

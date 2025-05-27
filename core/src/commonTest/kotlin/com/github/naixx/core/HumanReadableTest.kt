@@ -10,6 +10,8 @@ class HumanReadableTest {
         assertEquals("0.12", 0.12.abbreviation)
         assertEquals("2K", 2194.abbreviation)
         assertEquals("0", 0.abbreviation)
+        assertEquals("3", 3.0.abbreviation)
+        assertEquals("100", 100f.abbreviation)
         assertEquals("5M", 5000000.abbreviation)
     }
 

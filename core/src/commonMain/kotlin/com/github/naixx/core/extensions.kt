@@ -12,7 +12,7 @@ val Instant.relative
     get() = HumanReadable.timeAgo(this)
 
 val Number.abbreviation
-    get() = if (this.toDouble() < 1000.0) this.toString() else HumanReadable.abbreviation(this)
+    get() = if (this.toDouble() < 1000.0) this.toString().removeTrailingZeros() else HumanReadable.abbreviation(this)
 
 /**
  * Formats the given [number].

@@ -1,12 +1,11 @@
 package com.github.naixx.core
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import nl.jacobras.humanreadable.HumanReadable
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 val Instant.isInPast
-    get() = Clock.System.now() >= this
+    get() = kotlin.time.Clock.System.now() >= this
 
 val Instant.relative
     get() = HumanReadable.timeAgo(this)

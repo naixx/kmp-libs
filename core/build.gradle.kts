@@ -43,6 +43,10 @@ kotlin {
 
     jvm()
 
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+    }
+
     sourceSets {
         commonMain.dependencies {
             compileOnly(libs.human.readable)

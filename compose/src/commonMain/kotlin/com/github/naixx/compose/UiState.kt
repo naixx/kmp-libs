@@ -6,14 +6,32 @@
 
 package com.github.naixx.compose
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.*
-import kotlinx.coroutines.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.contracts.*
+import kotlinx.coroutines.launch
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 typealias RetryButtonContent = @Composable (UiState.Error) -> Unit
 typealias LoadingContent = @Composable LoadingScope.() -> Unit
@@ -42,11 +60,13 @@ private fun DefaultRetryButton(error: UiState.Error) {
     }
 }
 
-val LocalRetryButtonTheme: ProvidableCompositionLocal<RetryButtonTheme?> = staticCompositionLocalOf { RetryButtonTheme() }
+val LocalRetryButtonTheme: ProvidableCompositionLocal<RetryButtonTheme?> =
+    staticCompositionLocalOf { RetryButtonTheme() }
 
 @Composable
 fun <T> UiState<T>.Render(
-    loading: @Composable LoadingScope.() -> Unit = LocalRetryButtonTheme.current?.loadingContent ?: {},
+    loading: @Composable LoadingScope.() -> Unit = LocalRetryButtonTheme.current?.loadingContent
+        ?: {},
     error: RetryButtonContent = LocalRetryButtonTheme.current?.retryButtonContent ?: {},
     content: @Composable (T) -> Unit
 ) {
@@ -86,7 +106,8 @@ inline fun <T, R> UiState<T>.mapSuccess(transform: (value: T) -> R): R? {
     }
 }
 
-fun <T> UiState<T>.onRetry(newRetry: () -> Unit) = if (this is UiState.Error) UiState.Error(t, newRetry) else this
+fun <T> UiState<T>.onRetry(newRetry: () -> Unit) =
+    if (this is UiState.Error) UiState.Error(t, newRetry) else this
 
 fun <T> T.uiState() = UiState.Success(this)
 
@@ -133,7 +154,11 @@ suspend fun <R> catching(retry: () -> Unit = {}, block: suspend () -> R): UiStat
     }
 }
 
-fun <T> CoroutineScope.produce(flow: MutableStateFlow<UiState<T>>, retry: () -> Unit = {}, block: suspend () -> T) {
+fun <T> CoroutineScope.produce(
+    flow: MutableStateFlow<UiState<T>>,
+    retry: () -> Unit = {},
+    block: suspend () -> T
+) {
     this@produce.launch {
         flow.value = UiState.Loading
         flow.value = catching(retry) { block() }
@@ -141,41 +166,92 @@ fun <T> CoroutineScope.produce(flow: MutableStateFlow<UiState<T>>, retry: () -> 
 }
 
 @Composable
-fun <T> produce(key1: Any?, retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+fun <T> produce(key1: Any?, retry: Boolean = false, block: suspend () -> T): UiState<T> {
     var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
-    LaunchedEffect(key1 = key1) {
-        state = UiState.Loading
-        state = catching(retry) { block() }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(key1) {
+        fun withRetry() {
+            scope.launch {
+                state = UiState.Loading
+                state = catching<T>({
+                    if (retry)
+                        withRetry()
+                }) { block() }
+            }
+        }
+
+        withRetry()
     }
     return state
 }
 
 @Composable
-fun <T> produce(key1: Any?, key2: Any?, retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+fun <T> produce(
+    key1: Any?,
+    key2: Any?,
+    retry: Boolean = false,
+    block: suspend () -> T
+): UiState<T> {
     var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
-    LaunchedEffect(key1 = key1, key2 = key2) {
-        state = UiState.Loading
-        state = catching(retry) { block() }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(key1, key2) {
+        fun withRetry() {
+            scope.launch {
+                state = UiState.Loading
+                state = catching<T>({
+                    if (retry)
+                        withRetry()
+                }) { block() }
+            }
+        }
+
+        withRetry()
     }
     return state
 }
 
 @Composable
-fun <T> produce(key1: Any?, key2: Any?, key3: Any?,retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+fun <T> produce(
+    key1: Any?,
+    key2: Any?,
+    key3: Any?,
+    retry: Boolean = false,
+    block: suspend () -> T
+): UiState<T> {
     var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
-    LaunchedEffect(key1 = key1, key2 = key2, key3 = key3) {
-        state = UiState.Loading
-        state = catching(retry) { block() }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(key1, key2, key3) {
+        fun withRetry() {
+            scope.launch {
+                state = UiState.Loading
+                state = catching<T>({
+                    if (retry)
+                        withRetry()
+                }) { block() }
+            }
+        }
+
+        withRetry()
     }
     return state
 }
 
 @Composable
-fun <T> produce(retry: () -> Unit = {}, block: suspend () -> T): UiState<T> {
+fun <T> produce(retry: Boolean = false, block: suspend () -> T): UiState<T> {
     var state: UiState<T> by remember { mutableStateOf(UiState.Loading) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        state = UiState.Loading
-        state = catching(retry) { block() }
+        fun withRetry() {
+            scope.launch {
+                state = UiState.Loading
+                state = catching<T>({
+                    if (retry)
+                        withRetry()
+                }) { block() }
+            }
+        }
+
+        withRetry()
     }
     return state
 }

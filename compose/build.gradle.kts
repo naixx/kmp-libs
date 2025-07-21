@@ -50,7 +50,7 @@ kotlin {
 
 android {
     namespace = "com.github.naixx.compose"
-    compileSdk = 34
+    compileSdk = 35
     defaultConfig {
         minSdk = 24
     }
@@ -62,9 +62,19 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 dependencies {
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.androidx.ui.tooling.preview.desktop)
     debugImplementation(libs.androidx.ui.tooling)
+    androidTestImplementation(libs.kotlin.test)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.8.3")
+    androidTestImplementation(libs.junit)
+    testImplementation(libs.junit)
+    testImplementation("androidx.compose.ui:ui-test-junit4:1.8.3")
+    testImplementation("org.robolectric:robolectric:4.15.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.8.3")
 }
